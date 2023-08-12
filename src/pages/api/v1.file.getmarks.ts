@@ -1,7 +1,7 @@
 import { kv } from "@vercel/kv";
 import type { NextRequest } from "next/server";
 
-import { parseKVValue } from "@/pages/helper";
+import { parseKVValue } from "@/helper";
 
 export const config = {
   runtime: "edge",

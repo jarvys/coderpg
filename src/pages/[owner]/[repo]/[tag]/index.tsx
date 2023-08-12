@@ -5,7 +5,7 @@ import { DownOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import Editor from "@monaco-editor/react";
 
-import { mapRangeToLinesDecoration } from "@/pages/helper";
+import { mapRangeToLinesDecoration } from "@/helper";
 
 interface RepoContext {
   owner: string;
