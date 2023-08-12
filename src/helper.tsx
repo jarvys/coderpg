@@ -1,5 +1,5 @@
 export function parseKVValue(value: any, fallback: any) {
-  if (typeof value !== "string") {
+  if (value !== null && value !== undefined && typeof value !== "string") {
     return value;
   }
   try {
