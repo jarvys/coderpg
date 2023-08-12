@@ -3,7 +3,7 @@ export function parseKVValue(value: any, fallback: any) {
     return value;
   }
   try {
-    return JSON.parse(value);
+    return JSON.parse(value) || [];
   } catch (e) {
     console.error(e);
     return fallback;
