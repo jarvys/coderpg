@@ -240,6 +240,7 @@ function View({ ctx }: { ctx: RepoContext }) {
         <div style={{ height: "calc(100vh - 32px)" }}>
           <Editor
             height="100%"
+            options={{ readOnly: true }}
             language={language}
             defaultValue=""
             onMount={(editor) => {
