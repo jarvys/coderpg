@@ -1,0 +1,14 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.cldr.coderpg-lines-got::after {
+  display: block;
+  content: "";
+  width: 3px;
+  margin-left: 5px;
+  height: 100%;
+  background-color: lightblue;
+}
