@@ -14,8 +14,7 @@ interface IRepoService {
   getFileContent(url: string): Promise<string>;
 }
 
-const token =
-  "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";
+const token = process.env.GITHUB_TOKEN;
 
 export class RepoService implements IRepoService {
   async getFiles(query: RepoFilesQuery): Promise<File[]> {
@@ -44,6 +43,6 @@ export class RepoService implements IRepoService {
     if (res.status !== 200) {
       throw new Error(data?.message || "github api error");
     }
-    return atob(data.content)
+    return atob(data.content);
   }
 }
