@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 import Editor from "@monaco-editor/react";
 
 import { mapRangeToLinesDecoration } from "@/helper";
+import MarkLabel from "@/widgets/MarkLabel";
 
 interface RepoContext {
   owner: string;
@@ -80,6 +81,51 @@ function View({ ctx }: { ctx: RepoContext }) {
     }
   }
 
+  async function updateTreeMarkStatus() {
+    const res = await fetch(`/api/v1.repo.getmarkedfiles`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(ctx),
+    }).then((r) => r.json());
+    if (destroyRef.current) {
+      return;
+    }
+    const markedFiles: string[] = res?.data || [];
+    function updateMarkStatus(nodes: any[]) {
+      nodes = nodes.map((node) => {
+        if (node.isLeaf) {
+          if (markedFiles.includes(node.originFile.path)) {
+            node = {
+              ...node,
+              markStatus: "marked",
+              title: <MarkLabel status="marked" text={node.name} />,
+            };
+          }
+          return node;
+        } else {
+          const children = updateMarkStatus(node.children || []);
+          node = { ...node, children };
+          const hasMarkedChild = children.find(
+            (ch) => ch.markStatus !== "unmarked"
+          );
+          if (hasMarkedChild) {
+            node = {
+              ...node,
+              markStatus: "marked",
+              title: <MarkLabel status="marked" text={node.name} />,
+            };
+          }
+          return node;
+        }
+      });
+      return nodes;
+    }
+    setTree((prev: any) => {
+      const children = updateMarkStatus(prev.children || []);
+      return { ...prev, children };
+    });
+  }
+
   const language = useMemo(() => {
     if (activeFile?.path) {
       const path = activeFile.path;
@@ -97,7 +143,8 @@ function View({ ctx }: { ctx: RepoContext }) {
       ).then((r) => r.json());
     }
 
-    promiseRef.current.then((res) => {
+    async function initialize() {
+      const res = await promiseRef.current!;
       const files = res?.data || [];
       const root: any = { children: [] };
       files
@@ -109,9 +156,10 @@ function View({ ctx }: { ctx: RepoContext }) {
             let node = parent.children?.find((c: any) => c.name === d);
             if (!node) {
               node = {
-                title: d,
+                title: <MarkLabel status="unmarked" text={d} />,
                 key: f.path,
                 name: d,
+                markStatus: "unmarked",
                 children: [],
                 isLeaf: false,
                 selectable: false,
@@ -131,8 +179,10 @@ function View({ ctx }: { ctx: RepoContext }) {
           const filename = paths[paths.length - 1];
           const dirs = paths.slice(0, paths.length - 1);
           const node = {
-            title: filename,
+            title: <MarkLabel status="unmarked" text={filename} />,
+            name: filename,
             isLeaf: true,
+            markStatus: "unmarked",
             key: f.path,
             originFile: f,
           };
@@ -162,7 +212,13 @@ function View({ ctx }: { ctx: RepoContext }) {
         setActiveFile(activeFile);
         activeFileRef.current = activeFile;
       }
-    });
+
+      if (!destroyRef.current) {
+        updateTreeMarkStatus();
+      }
+    }
+
+    initialize();
   }, []);
 
   useEffect(() => {
@@ -189,6 +245,9 @@ function View({ ctx }: { ctx: RepoContext }) {
         end: selection.endLineNumber,
       }),
     }).then((r) => r.json());
+    if (destroyRef.current) {
+      return;
+    }
     if (path === activeFileRef.current?.path && !destroyRef.current) {
       const decorations = mapRangeToLinesDecoration(res.data || []);
       const oldDecorationIds = decorationIdxRef.current.slice();
@@ -197,12 +256,13 @@ function View({ ctx }: { ctx: RepoContext }) {
         decorations
       );
     }
+    updateTreeMarkStatus();
   }
 
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
       <Tree
-        style={{ width: 240, height: "100%", overflow: "auto", padding: 8 }}
+        style={{ width: 320, height: "100%", overflow: "auto", padding: 8 }}
         treeData={tree?.children || []}
         showLine
         switcherIcon={<DownOutlined />}

@@ -67,6 +67,7 @@ export default async function handler(request: NextRequest) {
   }
   ranges.sort((r1, r2) => r1.start - r2.start);
   await kv.set(key, JSON.stringify(ranges));
+  await kv.sadd<string>(`marked-paths:${owner}/${repo}/${tag}`, path);
 
   return new Response(JSON.stringify({ data: ranges, errorMessage: null }), {
     status: 200,
