@@ -42,6 +42,8 @@ function useDestroryFlagRef() {
   return ref;
 }
 
+const preferSidebarWidth = localStorage.getItem("coderpg.sidebar.width");
+
 function View({ ctx }: { ctx: RepoContext }) {
   const destroyRef = useDestroryFlagRef();
   const promiseRef = useRef<Promise<any>>();
@@ -262,7 +264,12 @@ function View({ ctx }: { ctx: RepoContext }) {
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
       <Tree
-        style={{ width: 320, height: "100%", overflow: "auto", padding: 8 }}
+        style={{
+          width: preferSidebarWidth ? +preferSidebarWidth : 320,
+          height: "100%",
+          overflow: "auto",
+          padding: 8,
+        }}
         treeData={tree?.children || []}
         showLine
         switcherIcon={<DownOutlined />}
